@@ -12,17 +12,21 @@ parse university name on the site http://www.4icu.org/
 
 import re
 import urllib.request
-from  bs4 import BeautifulSoup 
+from  bs4 import BeautifulSoup
 
-page_name=['0001']+[str(i) for i in range(2,28)] 
+page_name=['0001']+[str(i) for i in range(2,28)]
 '''
 from '0001'(0-9),'2'(A),'3'(B) to '27'(Z)
 '''
 page_university=[]
-page=page_name[0:28]
+page=page_name[1:28]
 for item_page_name in page:
     url="http://www.4icu.org/reviews/index"+item_page_name+".htm"
-    htmlpage = urllib.request.urlopen(url).read()
+    # print(url)
+
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    htmlpage = urllib.request.urlopen(req).read()
+    # htmlpage = urllib.request.urlopen(url).read()
     htmlpage = htmlpage.decode('utf-8')
     soup = BeautifulSoup(htmlpage)
     body = soup.body
@@ -43,13 +47,16 @@ error=[]
 for item_page_university in page_university:
     try:
         url="http://www.4icu.org"+item_page_university
-        htmlpage = urllib.request.urlopen(url).read()
+        print(url)
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        htmlpage = urllib.request.urlopen(req).read()
         htmlpage = htmlpage.decode('utf-8')
         soup = BeautifulSoup(htmlpage)
         body = soup.body
         b=body.find_all('div',{"class":"section group"})
-        #find name
-        temp_name=b[2].find_all('b')
+        # print(b.decode('utf-8'))
+        # temp_name=b[2].find_all('b')
+        temp_name=b[0].find_all('b')
         print(temp_name)
         pat1=re.compile(r'<b>(.*?)</b>',re.IGNORECASE)
         university_name.append(pat1.findall(str(temp_name))[0])
@@ -60,10 +67,12 @@ for item_page_university in page_university:
         university_city.append(address[1])
         university_region.append(address[2])
         university_country.append(address[3])
-    except:
+    except Exception as e:
+        z = e # representation: "<exceptions.ZeroDivisionError instance at 0x817426c>"
+        print(z) # output: "integer division or modulo by zero":
         error.append(item_page_university)
         print(item_page_university,'not found!')
-        
+
 
 with open('university_info'+'.txt','wt')as f:
     for i in range(0,len(university_name)):
@@ -72,8 +81,3 @@ with open('university_info'+'.txt','wt')as f:
 with opne('error.txt','wt') as f:
     for item in error:
         f.write(item+'\n')
-
-
-    
-        
-    
